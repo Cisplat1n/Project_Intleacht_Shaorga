@@ -5,28 +5,23 @@ import pathlib
 ########################
 #Data Read in function 
 ########################
-def read_df(path):
-    if path.suffix == '.csv':
-        dataframe = pd.read_csv(path)
-        return dataframe
-    else:
-        print("File type not accepted. Please use a CSV file type.")
+def read_df(input):
+    if isinstance(input, pd.DataFrame):
+        return input
+    
+    try:
+        path = pathlib.Path(input)
 
-#advanced path reading
+    except TypeError:
+        raise TypeError("Input must be a DataFrame or a path to a CSV file")
 
-#def read_df_adv(path):
+    if path.is_file() and path.suffix == ".csv":
+        return pd.read_csv(path)
 
-    #reads csv from path
- #   if p
+    print("Error. Try pass a CSV direct or Filepath to a CSV.")
+    return None
 
-    #reads xlsx file from path
-  #  elif 
 
-    #reads csv direct
-   # elif 
-
-    #reads xlsx direct
-    #elif 
 
 
 
