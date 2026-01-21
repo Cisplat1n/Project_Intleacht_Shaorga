@@ -37,19 +37,19 @@ def read_df(input):
 
 def df_checker(data):
     #shape
-    shape = data.shape(),
+    shape = data.shape
 
     #Info as string
     buffer = StringIO()
     data.info(buf=buffer)
-    info = buffer.getvalue(),
+    info = buffer.getvalue()
 
     #missing values
-    per_null= data.isna().mean() * 100,
-    num_null = data.isna().sum(),
+    per_null= data.isna().mean() * 100
+    num_null = data.isna().sum()
 
     #correlation values
-    corr= data.corr(),  # Pearson by default
+    corr= data.corr(numeric_only=True)  # Pearson by default
 
     #categorical columns
     cat_cols = data.select_dtypes(include='object').columns
@@ -70,6 +70,13 @@ def df_checker(data):
             "cat_value_proportion": cat_col_proportion
         }
 
+
+
+#anonymise data for security purposes
+#DO NOT SEND SENSITIVE DATA INTO AN LLM EVER! I AM NOT LIABLE IF YOU DO THAT!
+
+def data_anon(data):
+    return data
 
 
 ########################
