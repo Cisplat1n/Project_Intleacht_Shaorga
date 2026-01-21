@@ -1,10 +1,16 @@
+########################
 #Libraries
+########################
+
 import pandas as pd
 import pathlib 
+
+
 
 ########################
 #Data Read in function 
 ########################
+
 def read_df(input):
     if isinstance(input, pd.DataFrame):
         return input
@@ -23,14 +29,15 @@ def read_df(input):
 
 
 
-
-
 ########################
 #df checker 
 #(should check for empty data frames and do some basic data Anonymisation)
 ########################
 
+def df_checker(data):
 
+
+    return 
 
 
 
