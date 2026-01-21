@@ -39,6 +39,9 @@ def df_checker(data):
     #shape
     shape = data.shape
 
+    #column names
+    col_names = data.columns.tolist()
+
     #Info as string
     buffer = StringIO()
     data.info(buf=buffer)
@@ -67,7 +70,8 @@ def df_checker(data):
             "correlation": corr,
             "unique_values": unique_val,
             "cat_value_counts": num_cat_vals,
-            "cat_value_proportion": cat_col_proportion
+            "cat_value_proportion": cat_col_proportion,
+            "col_names": col_names
         }
 
 
