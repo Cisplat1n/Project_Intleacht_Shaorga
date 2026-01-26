@@ -29,9 +29,9 @@ Given a DataFrame, the system will:
 1. **Inspect the data** for common structural and quality issues
 
    * Missing values (`NaN` / `None`)
-   * Inconsistent types
-   * Suspicious formats
-   * Edge-case values
+   * Descriptive Statistics
+   * Grab the column names
+   * Use the data to make spoof data
 
 2. **Generate suggested transformation code**
 
