@@ -1,0 +1,3 @@
+#This txt serves as the template that will store the suggested code: 
+# DO NOT MODIFY THE TEXT IS THIS DOCUMENT OTHER THAN TO APPEND CODE TO IT
+#This test suite should have a logical flow and spaces + comments/docstrings to explain each piece of code

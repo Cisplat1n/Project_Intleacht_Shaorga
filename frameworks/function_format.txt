@@ -1,0 +1,8 @@
+def transform_dataframe(df):
+    df_out = df.copy()
+    change_log = []
+
+    # df_out["col"] = ...
+    # change_log.append("Description of change")
+
+    return df_out, change_log
