@@ -1,0 +1,64 @@
+def convert_salary_estimate_to_numeric(df):
+    df_out = df.copy()
+    change_log = []
+
+    # Convert 'Salary Estimate' column to numeric values
+    df_out['Salary Estimate'] = df_out['Salary Estimate'].str.replace('$', '').str.replace(',', '').astype(float)
+    change_log.append("Converted 'Salary Estimate' column to numeric values")
+
+    return df_out, change_log
+
+
+ 
+
+def extract_location_city_state(df):
+    df_out = df.copy()
+    change_log = []
+
+    # Extract city and state from 'Location' column
+    df_out['City'] = df_out['Location'].str.split(',').str[0]
+    df_out['State'] = df_out['Location'].str.split(',').str[1]
+    change_log.append("Extracted city and state from 'Location' column")
+
+    return df_out, change_log
+
+
+ 
+
+def encode_size_column(df):
+    df_out = df.copy()
+    change_log = []
+
+    # Encode 'Size' column using one-hot encoding
+    size_dummies = pd.get_dummies(df_out['Size'])
+    df_out = pd.concat([df_out, size_dummies], axis=1)
+    df_out = df_out.drop('Size', axis=1)
+    change_log.append("Encoded 'Size' column using one-hot encoding")
+
+    return df_out, change_log
+
+
+ 
+
+def handle_outliers_in_rating_column(df):
+    df_out = df.copy()
+    change_log = []
+
+    # Handle outliers in 'Rating' column by replacing values greater than 5 with 5
+    df_out['Rating'] = df_out['Rating'].apply(lambda x: 5 if x > 5 else x)
+    change_log.append("Handled outliers in 'Rating' column by replacing values greater than 5 with 5")
+
+    return df_out, change_log
+
+
+ 
+
+def extract_year_from_founded_column(df):
+    df_out = df.copy()
+    change_log = []
+
+    # Extract year from 'Founded' column
+    df_out['Year Founded'] = df_out['Founded'].astype(str).str[-4:]
+    change_log.append("Extracted year from 'Founded' column")
+
+    return df_out, change_log

@@ -133,6 +133,42 @@ def df_checker(data: pd.DataFrame) -> dict:
             "skewed": bool(abs(series.skew()) > 1),
         }
 
+    # --- data quality issues ---
+    potential_issues = {}
+    for col in cat_cols:
+        col_data = data[col].dropna().astype(str)
+        if col_data.empty:
+            continue
+        
+        potential_issues[col] = {
+            "has_leading_trailing_whitespace": bool((col_data.str.strip() != col_data).any()),
+            "mixed_case": bool(col_data.str.islower().any() and col_data.str.isupper().any())
+        }
+
+    # --- numeric columns that might be categorical ---
+    numeric_potentially_categorical = [
+        col for col in numeric_cols 
+        if data[col].nunique() < 20
+    ]
+
+    # --- potential date columns ---
+    potential_date_columns = [
+        col for col in cat_cols
+        if any(keyword in col.lower() for keyword in ['date', 'time', 'year', 'founded', 'created', 'updated'])
+    ]
+
+    # --- duplicate rows ---
+    duplicate_info = {
+        "count": int(data.duplicated().sum()),
+        "percentage": round(float(data.duplicated().mean() * 100), 2)
+    }
+
+    # --- example values (3 samples per column) ---
+    example_values = {
+        col: data[col].dropna().head(3).tolist()
+        for col in data.columns
+    }
+
     return {
         "shape": shape,
         "column_names": col_names,
@@ -143,6 +179,11 @@ def df_checker(data: pd.DataFrame) -> dict:
         },
         "categorical_summary": cat_summary,
         "numeric_summary": num_summary,
+        "potential_issues": potential_issues,
+        "numeric_potentially_categorical": numeric_potentially_categorical,
+        "potential_date_columns": potential_date_columns,
+        "duplicate_rows": duplicate_info,
+        "example_values": example_values,
     }
 
 #anonymise data for security purposes
