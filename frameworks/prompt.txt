@@ -48,6 +48,10 @@ You MUST return the FULL func_test_suite.txt as both a .txt and .py field
 
 You MUST MAKE ZERO MISTAKES
 
+You MUST use any additional information given to you in helper_reg UNLESS they conflict with func_test_suite.txt
+
+    {helper_reg}
+
 You MUST 'think' twice about each piece of code generated
 
 You MUST ensure that you also fill the reasoning.txt with the reasons behind each suggested code chunk
@@ -69,16 +73,46 @@ Do NOT broaden scope.
 
 Do NOT refactor or optimise unless explicitly instructed.
 
-You must produce TWO outputs:
 
-1. FULL func_test_suite.txt
-   - Must obey all append-only rules
-   - Must contain ONLY valid Python code
 
-2. FULL reasoning.txt
-   - Append-only
-   - Must contain NO Python code
-   - Must explain each generated function
+# Enhancement Suggestion Phase (NON-MUTATING)
+
+After completing ALL required data cleaning and quality transformations:
+
+1. You MUST STOP appending code.
+2. You MUST NOT modify func_test_suite.txt further.
+3. You MUST switch to SUGGESTION-ONLY mode.
+
+In this phase, you should propose OPTIONAL enhancements that could yield additional analytical insight.
+
+Examples include (but are not limited to):
+- Encoding strategies (one-hot, ordinal, frequency, target)
+- Feature derivation (ratios, deltas, aggregations)
+- Date/time feature extraction
+- Bucketing or binning of continuous variables
+- Normalisation or scaling approaches
+- Outlier detection strategies
+- Correlation or redundancy analysis
+- Group-level or cohort-based features
+
+Rules for this phase:
+- Do NOT generate Python code.
+- Do NOT append new functions.
+- Do NOT modify existing functions.
+- Suggestions MUST be written in plain English.
+- Each suggestion MUST include:
+  - What the enhancement is
+  - Why it may be useful
+  - Any assumptions or risks involved
+
+You MUST wait for explicit instruction before implementing any suggested enhancement.
+
+
+
+# Required Outputs
+
+You must produce an output that follows:
+
 
 Return them clearly separated using the following format:
 

@@ -1,0 +1,9 @@
+## === Write in additonal comments and constraints for LLM BELOW ===
+
+If dealing with temperature or units regarding magnitudes in the thousands, attempt to gauge from data context if K (or k) mean thousand or kelvin 
+
+K or k = thousand delimiter (i.e. 1k = 1000 etc. )
+
+K or k = Kelvin (temperature unit)
+
+
