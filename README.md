@@ -13,10 +13,11 @@ This project is a **proof-of-concept** showcasing how a Large Language Model (LL
 
 Instead of manually writing repetitive validation and cleaning logic, this tool:
 
-* Accepts **structured instructions** and a **pandas DataFrame**
-* Builds a prompt from a **predefined, constrained skeleton**
-* Sends that prompt to an LLM via an API
-* Receives **suggested transformations, justifications, and improvements**
+* Accepts structured instructions and a statistics about a pandas dataframe
+* Builds a prompt from a predefined, constrained skeleton (which also has a helper_reg for additional constraints)
+* Sends that prompt to an LLM (GLM-4.7) via an API (Cerebras Inference)
+* Receives suggested transformations, justifications, and improvements
+* Then also enables the user to send the stats and suggested transformations back to the LLM for additional suggestions
 
 The goal is not blind automation, but **transparent, explainable data tidying**.
 
@@ -26,7 +27,7 @@ The goal is not blind automation, but **transparent, explainable data tidying**.
 
 Given a DataFrame, the system will:
 
-1. **Inspect the data** for common structural and quality issues
+1. **Inspect the data** for common quality issues
 
    * Dataset shape and dimensionality
    * Column names and data types
@@ -39,6 +40,7 @@ Given a DataFrame, the system will:
    * Pandas-native
    * Non-destructive by default
    * Human-readable and reviewable
+   * Use additional constraints from the helper_reg.txt for added guidance
 
 3. **Explain its reasoning**
 
@@ -55,9 +57,9 @@ Given a DataFrame, the system will:
 
 ### Privacy Model
 
-This system **does not send raw data values** to the LLM.
+This system **does NOT send raw data values** to the LLM.
 
-Instead, it extracts and transmits **descriptive metadata only**, such as:
+Instead, it extracts and transmits descriptive metadata **only**, such as:
 
 * Dataset shape and schema
 * Column-level data types
@@ -67,7 +69,7 @@ Instead, it extracts and transmits **descriptive metadata only**, such as:
 
 No actual cell values, identifiers, or sensitive strings are included in the prompt.
 
-This design ensures that the LLM can reason about **structure and quality** without ever seeing real data.
+This design ensures that the LLM can reason about structure and quality without ever seeing real data.
 
 ---
 
@@ -76,9 +78,9 @@ This design ensures that the LLM can reason about **structure and quality** with
 ```
 DataFrame
    ↓
-Instruction Parser
+Metadata extracted
    ↓
-Prompt Skeleton (Predefined & Controlled)
+Prompt Skeleton populated(Predefined & Controlled)
    ↓
 LLM API Call
    ↓
@@ -89,7 +91,7 @@ LLM API Call
 ─────────────────────────────
 ```
 
-Key design goal: **the LLM reasons, but does not execute**.
+Key design goal: **Flexible, data agnostic, LLM reasoning, but does not execute and with transparency**.
 
 ---
 
@@ -97,7 +99,7 @@ Key design goal: **the LLM reasons, but does not execute**.
 
 * **Clean-room friendly** — no proprietary logic embedded
 * **Explainability first** — every suggestion is justified
-* **LLM as an assistant, not an oracle**
+* **LLM is meant to act as assistant, not an oracle**
 * **Prompt constraints** to reduce hallucinations
 * **Human-in-the-loop** by default
 
@@ -134,7 +136,7 @@ It is **not** intended to replace data engineers — only to make them faster an
 ### Disclaimer
 
 * This is an **experimental project**
-* Outputs should always be **reviewed before execution**
+* Outputs should **always** be reviewed before execution
 * Not intended for production use without safeguards
 
 ---
@@ -143,18 +145,17 @@ It is **not** intended to replace data engineers — only to make them faster an
 
 * Schema-aware validation
 * Streamlit UI for interactive review
-* Pluggable rule systems
+* Pluggable rule systems -> expansion on the helper registry
 * Test generation from LLM output
-* Diff-based DataFrame transformations
+
 
 ---
 
 ### Status
 
-Early-stage / exploratory
+Approaching end status!
 
 Contributions, critiques, and experiments welcome.
 
 ---
 
-*Built to explore the intersection of LLMs, data quality, and explainable automation.*
