@@ -279,13 +279,13 @@ llm_output.txt
 
 **Before each new dataset:**
 
-bash
-# Clear generated outputs
-rm -rf stats/*
-rm -rf final_prompt/*
-rm -rf llm_cleaning/*
-rm -rf temp/*
-rm -rf llm_suggestions/*
+
+#### Clear generated outputs (Bash)
+* rm -rf stats/*
+* rm -rf final_prompt/*
+* rm -rf llm_cleaning/*
+* rm -rf temp/*
+* rm -rf llm_suggestions/*
 
 
 
@@ -297,7 +297,7 @@ rm -rf llm_suggestions/*
 
 ### Optimisation Tips
 
-'''
+
 #### 1. Start Simple
 
 ```
@@ -312,7 +312,7 @@ Third run:  Request enhancements
 - Each iteration improves results
 
 #### 3. Validate Everything
-python
+
 # After each transformation
 print(f"Before: {df.shape}")
 print(f"After:  {df_cleaned.shape}")
