@@ -230,7 +230,7 @@ privacy_level: Do not expose PII in outputs
 ### Phase 3: Generate Cleaning Code (Automatic)
 
 **What happens:**
-1. LLM analyses statistics + helper registry
+1. LLM analyses assembles the full prompt based on the frameworks (uses statistics + helper registry)
 2. Generates transformation functions
 3. Writes code to `llm_cleaning/llm_output.txt`
 4. Writes reasoning to internal reasoning section
