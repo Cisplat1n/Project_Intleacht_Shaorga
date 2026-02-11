@@ -313,13 +313,13 @@ Third run:  Request enhancements
 
 #### 3. Validate Everything
 
-#### After each transformation
-'''
-print(f"Before: {df.shape}")
-print(f"After:  {df_cleaned.shape}")
-print(f"Changed: {df.compare(df_cleaned)}")
+### After each transformation
 
-'''
+* print(f"Before: {df.shape}")
+* print(f"After:  {df_cleaned.shape}")
+* print(f"Changed: {df.compare(df_cleaned)}")
+
+
 
 #### 4. Use Helper Registry Strategically
 
