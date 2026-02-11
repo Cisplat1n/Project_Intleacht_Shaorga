@@ -1,64 +1,23 @@
 # Enhancement Suggestion Phase (NON-MUTATING)
 
-## Verification of Critical Issues
+Based on the provided statistics and existing transformations, here are suggestions for further enhancements. These suggestions build upon the work already done (e.g., extracting seniority, parsing salary) to create a more robust feature set for analysis.
 
-Based on the provided statistics and the existing transformation functions, here is the status of the critical issues identified in the data:
+### Suggestion 1: Competitor Count Extraction
+- **What:** Parse the `Competitors` column to create a new numeric column `competitor_count`.
+- **Why:** The `Competitors` column currently contains comma-separated company names or missing values (indicated by the 74.6% dominant value). Converting this into a count of competitors provides a numeric feature representing market competition or company prominence, which is more useful for modeling than a list of names.
+- **Assumptions/Risks:** Assumes the delimiter is a comma. Assumes the dominant value (likely "-1" or empty) represents zero competitors. There is a risk that some entries contain non-standard formatting that requires robust regex handling.
 
-1.  **Salary Estimate (Range Format):** **ADDRESSED**. The `parse_salary_estimate` function successfully extracts numeric min/max values from the string ranges.
-2.  **Job Description (Embedded Newlines):** **PARTIALLY ADDRESSED**. The `extract_job_skills` function processes the text effectively despite the newlines. However, the raw `Job Description` column itself remains uncleaned.
-3.  **Company Name (Embedded Newlines):** **ADDRESSED**. The `clean_company_name` function removes the newline and rating suffix.
-4.  **Rating (Negative Missing Indicator -1):** **NOT ADDRESSED**. The statistics indicate 50 values are -1. No existing function converts these to NaN.
-5.  **Founded (Negative Missing Indicator -1):** **ADDRESSED**. The `calculate_company_age` function explicitly checks for values > 0 and converts -1 to NaN during the age calculation.
+### Suggestion 2: Primary Job Role Extraction
+- **What:** Extract the primary job role (e.g., 'Data Scientist', 'Data Analyst', 'Software Engineer') from the `Job Title` column into a new `job_role` column.
+- **Why:** The existing `transform_job_title_seniority` function successfully extracts seniority levels. However, the specific role is equally important for analysis. Extracting the role reduces the cardinality of the `Job Title` column (currently 172 unique values) into a manageable set of standard categories, facilitating grouping and comparison.
+- **Assumptions/Risks:** Assumes that the role name appears as a distinct keyword within the title. There is a risk of misclassifying hybrid roles (e.g., "Senior Data Scientist and Manager") if simple keyword matching is used without priority rules.
 
-## Verification of Missing Indicators
+### Suggestion 3: Company Name Cleaning
+- **What:** Clean the `Company Name` column by removing newline characters, trailing whitespace, and any non-alphanumeric artifacts (like ratings sometimes appended in scraped data).
+- **Why:** While `Company Name` has high cardinality (432 unique values), it is often used for merging datasets or visualization. Artifacts like `\n` or inconsistent spacing can prevent accurate matching or grouping. This ensures the `Company Name` is a clean string identifier.
+- **Assumptions/Risks:** Assumes artifacts are limited to standard whitespace or newline characters. There is a risk of over-cleaning if legitimate special characters are part of a company's legal name.
 
-The following columns contain missing indicators (mostly "-1" or "Unknown") that are **NOT** currently handled by the provided functions:
-*   `Size` (-1, Unknown)
-*   `Type of ownership` (-1, Unknown)
-*   `Industry` (-1)
-*   `Sector` (-1)
-*   `Revenue` (-1)
-*   `Competitors` (-1)
-
-## Enhancement Suggestions
-
-### Suggestion 1: Clean Rating Column
-**What:**
-Create a function to replace -1 values in the 'Rating' column with NaN (Not a Number).
-
-**Why:**
-The 'Rating' column currently uses -1 as a placeholder for missing data (7.44% of rows). Leaving this as -1 will skew statistical calculations (mean, median) and negatively impact machine learning models that assume numerical values are continuous measurements. Converting -1 to NaN standardizes the missing data representation.
-
-**Assumptions or Risks:**
-*   Assumes that -1 is strictly a missing indicator and not a valid rating (which is impossible for a standard 1-5 scale).
-*   Risk: If downstream processes do not handle NaN values, this may cause errors, though this is the standard pandas approach.
-
-### Suggestion 2: Parse Revenue into Numeric Values
-**What:**
-Create a function to parse the 'Revenue' column strings (e.g., "$1 to $5 billion (USD)") into a numeric midpoint or a standardized ordinal category.
-
-**Why:**
-'Revenue' is currently an object/string type. To analyze the correlation between company revenue and salary, or to use revenue as a feature in a model, it must be converted to a number. Extracting the midpoint of the range (e.g., $3 billion) preserves the most information while converting the type.
-
-**Assumptions or Risks:**
-*   Assumes the format is consistently "Range (Currency)" or "Unknown".
-*   Risk: "Unknown / Non-Applicable" values must be handled gracefully (converted to NaN).
-*   Risk: Converting billions to millions requires a consistent multiplier strategy to avoid scale errors.
-
-### Suggestion 3: Parse Company Size into Employee Counts
-**What:**
-Create a function to parse the 'Size' column (e.g., "51 to 200 Employees") into numeric minimum and maximum employee counts, or a single average value.
-
-**Why:**
-Similar to revenue, company size is a strong predictor for salary and role structure. The current text format prevents quantitative analysis. Converting this to a numeric feature allows for regression analysis or grouping by company magnitude.
-
-**Assumptions or Risks:**
-*   Assumes "10000+ Employees" is the upper bound and requires a specific handling strategy (e.g., treating the max as 10000 or a larger arbitrary number).
-*   Risk: "Unknown" values need to be converted to NaN.
-
-### Suggestion 4, which could serve as a proxy for market competition or the company's prominence in the sector.
-
-**Assumptions or Risks:**
-*   Assumes the delimiter is consistently a comma.
-*   Risk: The value "-1" is used for missing data; the function must distinguish between the string "-1" and a list of competitors.
-*   Risk: Company names might contain commas, though this is less likely in this specific dataset structure.
+### Suggestion 4: Tech Sector Flag
+- **What:** Create a boolean column `is_tech_sector` by checking if the `Sector` or `Industry` column contains keywords like "Information Technology", "Software", or "Computer".
+- **Why:** In job market analysis, distinguishing between tech companies and non-tech companies (e.g., a bank hiring a data analyst) is often a critical predictor for salary and job requirements. This binary flag simplifies the `Sector` column (23 unique values) into a high-signal feature.
+- **Assumptions/Risks:** Assumes that specific keywords accurately define the "tech" sector. There is a risk of misclassifying companies in adjacent sectors (e.g., "Telecommunications") depending on the strictness of the keyword list.

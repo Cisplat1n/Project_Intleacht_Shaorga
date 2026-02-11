@@ -33,3 +33,10 @@ If at all possible use boolean to determine if two elements are the same as each
 
 If there is high cardinality in a column, attempt to reduce cardinality as much as possible without losing resolution and detail. 
 (e.g. if there is a column with 172 unique values attempt to map those values to a significantly smaller mapping)
+
+If there are missing values in a column, attempt to define the best course of action to resolve this conflict. Such as using different methods to normalise the values. 
+(e.g. If a value is missing, perhaps use a median value or some other such method. If the value seems uncharacteristically negative, perhaps convert to NaN if appropriate)
+
+If columns contain strings that would benefit being converted to numeric, attempt to do so in the least destructive way possible. 
+If necessary, suggest an additional column where the new numeric variant could exist. 
+(e.g. convert a string range 1$ to 100$ to a numeric value. Perhaps suggest binning as an alternative to this)

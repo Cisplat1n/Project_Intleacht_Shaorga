@@ -20,322 +20,333 @@
 
 # === APPEND NEW TRANSFORM FUNCTIONS BELOW ===
 
-def clean_company_name(df):
-    """
-    Cleans the 'Company Name' column by removing embedded newline characters 
-    and ratings that appear after the newline.
-    
-    The data analysis indicated that 92.6% of values contain newlines, 
-    suggesting the company rating is concatenated with the name (e.g., "Company\\n3.5").
-    This transformation isolates the actual company name.
-    """
-    df_out = df.copy()
-    change_log = []
 
-    if 'Company Name' in df_out.columns:
-        original_count = df_out['Company Name'].count()
-        
-        # Split by newline and take the first part
-        df_out['Company Name'] = df_out['Company Name'].apply(
-            lambda x: x.split('\n')[0] if isinstance(x, str) else x
-        )
-        
-        new_count = df_out['Company Name'].count()
-        change_log.append({
-            'action': 'clean_company_name',
-            'description': 'Removed embedded newlines and ratings from Company Name',
-            'affected_rows': original_count
-        })
-    else:
-        change_log.append({
-            'action': 'clean_company_name',
-            'description': 'Column not found',
-            'status': 'skipped'
-        })
-
-    return df_out, change_log
-
-
-def parse_salary_estimate(df):
+def transform_salary_estimate(df):
     """
     Parses the 'Salary Estimate' column to extract minimum and maximum salary values.
-    
-    The column contains range strings like '$37K-$91K (Glassdoor est.)'. 
-    This function extracts the numeric values, handles the 'K' (thousands) suffix,
-    and stores the result in thousands as per ML dataset standards (e.g., 37 instead of 37000).
+    Converts string ranges (e.g., '$100K - $150K') into numeric columns representing thousands.
+    Handles missing values and non-standard entries by setting them to NaN.
     """
+    import numpy as np
     import re
-    import numpy as np
     
     df_out = df.copy()
     change_log = []
 
-    if 'Salary Estimate' in df_out.columns:
-        # Regex to find numbers followed by K (thousands)
-        # Pattern looks for $XXK-YYK or similar variations
-        pattern = re.compile(r'\$(\d+)K-\$(\d+)K', re.IGNORECASE)
+    if 'Salary Estimate' not in df_out.columns:
+        return df_out, change_log
+
+    # Helper function to parse individual salary strings
+    def parse_salary(salary_str):
+        if pd.isna(salary_str):
+            return np.nan, np.nan
         
-        min_salaries = []
-        max_salaries = []
-        parsed_count = 0
-
-        for val in df_out['Salary Estimate']:
-            if isinstance(val, str):
-                match = pattern.search(val)
-                if match:
-                    min_salaries.append(int(match.group(1)))
-                    max_salaries.append(int(match.group(2)))
-                    parsed_count += 1
-                else:
-                    min_salaries.append(np.nan)
-                    max_salaries.append(np.nan)
-            else:
-                min_salaries.append(np.nan)
-                max_salaries.append(np.nan)
-
-        df_out['Salary_Min_K'] = min_salaries
-        df_out['Salary_Max_K'] = max_salaries
+        # Remove common text artifacts like "(Glassdoor est.)"
+        clean_str = re.sub(r'\(.*\)', '', str(salary_str)).strip()
         
-        change_log.append({
-            'action': 'parse_salary_estimate',
-            'description': 'Extracted min/max salary in thousands from range strings',
-            'columns_added': ['Salary_Min_K', 'Salary_Max_K'],
-            'successfully_parsed': parsed_count
-        })
-    else:
-        change_log.append({
-            'action': 'parse_salary_estimate',
-            'description': 'Column not found',
-            'status': 'skipped'
-        })
-
-    return df_out, change_log
-
-
-def extract_location_state(df):
-    """
-    Extracts the state or province code from 'Location' and 'Headquarters' columns.
-    
-    The data follows a "City, State" format (e.g., "New York, NY"). 
-    This function simplifies the location to the 2-letter state code for regional analysis.
-    """
-    df_out = df.copy()
-    change_log = []
-
-    for col in ['Location', 'Headquarters']:
-        if col in df_out.columns:
-            # Extract the part after the comma, strip whitespace
-            # Handles missing indicators (-1) by returning them as is or NaN
-            def get_state(val):
-                if isinstance(val, str) and ',' in val:
-                    return val.split(',')[-1].strip()
-                return val # Returns -1 or original if no comma
-
-            new_col_name = f"{col}_State"
-            df_out[new_col_name] = df_out[col].apply(get_state)
-            
-            change_log.append({
-                'action': 'extract_location_state',
-                'description': f'Extracted state code from {col}',
-                'column_added': new_col_name
-            })
+        # Regex to find patterns like $100K - $150K or $100-$150
+        # Looks for digits, optional 'K', optional 'm' (millions), though K is standard here
+        matches = re.findall(r'\$?(\d+(?:\.\d+)?)\s*([KkMm])?', clean_str)
+        
+        if not matches:
+            return np.nan, np.nan
+        
+        values = []
+        for val, unit in matches:
+            num = float(val)
+            if unit and unit.lower() == 'm':
+                num *= 1000  # Convert millions to thousands
+            elif not unit:
+                # If no unit, assume it's already in the base unit or check magnitude
+                # Given context of job data, usually implies K if number is small, or exact if large
+                # However, standardizing to K is the goal. 
+                # If number is < 100 and no unit, likely K. If > 100, could be K or raw.
+                # Assuming K based on "Store in thousands" instruction and typical data format.
+                pass 
+            values.append(num)
+        
+        if len(values) >= 2:
+            return min(values), max(values)
+        elif len(values) == 1:
+            return values[0], values[0]
         else:
-            change_log.append({
-                'action': 'extract_location_state',
-                'description': f'Column {col} not found',
-                'status': 'skipped'
-            })
+            return np.nan, np.nan
 
+    # Apply parsing
+    salary_data = df_out['Salary Estimate'].apply(parse_salary)
+    df_out['salary_min_k'] = salary_data.apply(lambda x: x[0])
+    df_out['salary_max_k'] = salary_data.apply(lambda x: x[1])
+    
+    # Calculate average salary for convenience
+    df_out['salary_avg_k'] = (df_out['salary_min_k'] + df_out['salary_max_k']) / 2
+
+    change_log.append("Parsed 'Salary Estimate' into numeric columns (min/max/avg in thousands).")
     return df_out, change_log
 
 
-def calculate_company_age(df):
+def transform_rating(df):
     """
-    Converts the 'Founded' year into 'Company_Age'.
+    Cleans the 'Rating' column by converting -1.0 values (indicating missing data) to NaN.
+    """
+    import, numpy as np
     
-    Calculates age based on the current year. Handles missing data indicators (-1)
-    by converting them to NaN. This transforms a point-in-time date into a duration metric.
+    df_out = df.copy()
+    change_log = []
+
+    if 'Rating' in df_out.columns:
+        # Replace -1 with NaN as it likely represents missing/unknown ratings
+        df_out['Rating'] = df_out['Rating'].replace(-1.0, np.nan)
+        change_log.append("Replaced -1.0 values in 'Rating' with NaN.")
+    
+    return df_out, change_log
+
+
+def transform_founded_to_age(df):
+    """
+    Converts the 'Founded' column into 'Company Age'.
+    Handles -1 values (missing) by converting to NaN.
+    Assumes a reference year of 2020 based on the maximum 'Founded' year in the dataset (2019).
     """
     import numpy as np
-    from datetime import datetime
     
     df_out = df.copy()
     change_log = []
 
     if 'Founded' in df_out.columns:
-        current_year = datetime.now().year
+        # Replace -1 with NaN
+        df_out['Founded'] = df_out['Founded'].replace(-1, np.nan)
         
-        def compute_age(founded_year):
-            if isinstance(founded_year, (int, float)) and founded_year > 0:
-                return current_year - founded_year
-            return np.nan
-
-        df_out['Company_Age'] = df_out['Founded'].apply(compute_age)
+        # Calculate Age. Using 2020 as reference year since max founded is 2019
+        reference_year = 2020
+        df_out['company_age'] = reference_year - df_out['Founded']
         
-        valid_ages = df_out['Company_Age'].notna().sum()
-        
-        change_log.append({
-            'action': 'calculate_company_age',
-            'description': 'Converted Founded year to Company Age',
-            'column_added': 'Company_Age',
-            'reference_year': current_year,
-            'valid_records': valid_ages
-        })
-    else:
-        change_log.append({
-            'action': 'calculate_company_age',
-            'description': 'Column not found',
-            'status': 'skipped'
-        })
-
+        change_log.append(f"Converted 'Founded' to 'company_age' using reference year {reference_year}.")
+    
     return df_out, change_log
 
 
-def extract_job_seniority(df):
+def transform_job_title_seniority(df):
     """
-    Reduces cardinality of 'Job Title' by extracting a standardized seniority level.
-    
-    Maps keywords found in job titles to categories: 'Senior', 'Junior', 'Lead/Executive', 
-    or 'Mid/Associate'. This helps in analyzing salary vs. experience without dealing 
-    with hundreds of unique job titles.
+    Extracts seniority level from 'Job Title' into a new column 'seniority'.
+    Maps keywords like 'Senior', 'Manager', 'Junior', etc., to standardized levels.
     """
     import numpy as np
     
     df_out = df.copy()
     change_log = []
 
-    if 'Job Title' in df_out.columns:
-        def categorize_seniority(title):
-            if not isinstance(title, str):
-                return 'Unknown'
+    if 'Job Title' not in df_out.columns:
+        return df_out, change_log
+
+    def get_seniority(title):
+        if pd.isna(title):
+            return 'Unknown'
+        title_lower = str(title).lower()
+        
+        if any(word in title_lower for word in ['intern', 'entry', 'trainee']):
+            return 'Entry'
+        elif any(word in title_lower for word in ['junior', 'jr', 'associate']):
+            return 'Junior'
+        elif any(word in title_lower for word in ['mid', 'intermediate', 'analyst']):
+            return 'Intermediate'
+        elif any(word in title_lower for word in ['senior', 'sr', 'lead', 'principal']):
+            return 'Senior'
+        elif any(word in title_lower for word in ['manager', 'mgr']):
+            return 'Manager'
+        elif any(word in title_lower for word in ['director', 'vp', 'vice president']):
+            return 'Executive'
+        elif any(word in title_lower for word in ['chief', 'cto', 'cio', 'ceo']):
+            return 'C-Level'
+        else:
+            return 'Unknown'
+
+    df_out['seniority'] = df_out['Job Title'].apply(get_seniority)
+    change_log.append("Extracted 'seniority' levels from 'Job Title'.")
+    
+    return df_out, change_log
+
+
+def transform_location_state(df):
+    """
+    Simplifies the 'Location' column by extracting the state or province code.
+    Assumes format 'City, State' or 'City, State, Country'.
+    """
+    import numpy as np
+    
+    df_out = df.copy()
+    change_log = []
+
+    if 'Location' not in df_out.columns:
+        return df_out, change_log
+
+    def extract_state(loc_str):
+        if pd.isna(loc_str):
+            return np.nan
+        parts = str(loc_str).split(',')
+        if len(parts) >= 2:
+            # The state is usually the last part before the country (if present) or just the last part
+            # Taking the second to last element if there are 3 parts (City, State, Country)
+            # Or the last element if 2 parts (City, State)
+            # We strip whitespace to get the code.
+            potential_state = parts[-2] if len(parts) > 2 else parts[-1]
+            return potential_state.strip()
+        return loc_str.strip()
+
+    df_out['location_state'] = df_out['Location'].apply(extract_state)
+    change_log.append("Extracted 'location_state' from 'Location' column.")
+    
+    return df_out, change_log
+
+
+def transform_hq_location_match(df):
+    """
+    Creates a boolean column 'is_hq_same_as_location' indicating if the 
+    Headquarters location matches the Job Location.
+    Performs basic string cleaning (lowercase, strip) before comparison.
+    """
+    import numpy as np
+    
+    df_out = df.copy()
+    change_log = []
+
+    if 'Headquarters' in df_out.columns and 'Location' in df_out.columns:
+        # Clean strings for comparison
+        hq_clean = df_out['Headquarters'].astype(str).str.lower().str.strip()
+        loc_clean = df_out['Location'].astype(str).str.lower().str.strip()
+        
+        df_out['is_hq_same_as_location'] = (hq_clean == loc_clean)
+        change_log.append("Created boolean column 'is_hq_same_as_location'.")
+    
+    return df_out, change_log
+
+
+def transform_job_description_skills(df):
+    """
+    Extracts binary indicators for key technical skills from 'Job Description'.
+    Creates new boolean columns for each identified skill (e.g., 'skill_python', 'skill_sql').
+    """
+    import numpy as np
+    
+    df_out = df.copy()
+    change_log = []
+
+    if 'Job Description' not in df_out.columns:
+        return df_out, change_log
+
+    # Define key skills to search for
+    skills = [
+        'python', 'r ', 'sql', 'excel', 'tableau', 'power bi', 'powerbi', 
+        'aws', 'azure', 'hadoop', 'spark', 'tensorflow', 'pytorch', 
+        'scikit-learn', 'sklearn', 'sas', 'java', 'scala', 'javascript'
+    ]
+    
+    # Ensure description is string and lowercase for searching
+    descriptions = df_out['Job Description'].astype(str).str.lower()
+    
+    for skill in skills:
+        col_name = f'skill_{skill.replace(" ", "_").replace("-", "_")}'
+        # Using regex word boundaries to avoid partial matches (e.g. 'r' inside 'report')
+        # However, for 'r ' (the language), space is important or use \b
+        pattern = r'\b' + re.escape(skill) + r'\b'
+        df_out[col_name] = descriptions.str.contains(pattern, regex=True, na=False)
+        
+    change_log.append(f"Created binary skill indicators for {len(skills)} keywords.")
+    return df_out, change_log
+
+
+def transform_size_numeric(df):
+    """
+    Parses the 'Size' column to extract numeric employee counts.
+    Creates 'size_min' and 'size_max' columns.
+    Handles ranges like '10000+ employees' by setting max to None or a large number.
+    """
+    import numpy as np
+    import re
+    
+    df_out = df.copy()
+    change_log = []
+
+    if 'Size' not in df_out.columns:
+        return df_out, change_log
+
+    def parse_size(size_str):
+        if pd.isna(size_str) or 'unknown' in str(size_str).lower():
+            return np.nan, np.nan
+        
+        # Extract numbers
+        numbers = re.findall(r'(\d+)', str(size_str))
+        
+        if not numbers:
+            return np.nan, np.nan
             
-            title_lower = title.lower()
-            
-            if any(kw in title_lower for kw in ['senior', 'sr.', 'sr ', 'lead', 'principal', 'director', 'vp', 'chief']):
-                return 'Senior/Lead'
-            elif any(kw in title_lower for kw in ['junior', 'jr.', 'jr ', 'intern', 'entry', 'associate']):
-                return 'Junior/Entry'
+        nums = [int(n) for n in numbers]
+        
+        if '+' in str(size_str):
+            return nums[0], np.inf # Represent infinity or a very large number
+        elif 'to' in str(size_str) or '-' in str(size_str):
+            if len(nums) >= 2:
+                return nums[0], nums[1]
             else:
-                return 'Mid-Level'
+                return nums[0], nums[0]
+        else:
+            # Single number found
+            return nums[0], nums[0]
 
-        df_out['Job_Seniority'] = df_out['Job Title'].apply(categorize_seniority)
-        
-        distribution = df_out['Job_Seniority'].value_counts().to_dict()
-        
-        change_log.append({
-            'action': 'extract_job_seniority',
-            'description': 'Mapped job titles to seniority categories',
-            'column_added': 'Job_Seniority',
-            'distribution': distribution
-        })
-    else:
-        change_log.append({
-            'action': 'extract_job_seniority',
-            'description': 'Column not found',
-            'status': 'skipped'
-        })
-
+    size_data = df_out['Size'].apply(parse_size)
+    df_out['size_min_employees'] = size_data.apply(lambda x: x[0])
+    df_out['size_max_employees'] = size_data.apply(lambda x: x[1])
+    
+    change_log.append("Parsed 'Size' into numeric min/max employee counts.")
     return df_out, change_log
 
 
-def extract_job_skills(df):
+def transform_revenue_numeric(df):
     """
-    Performs one-hot encoding for key technical skills found in 'Job Description'.
-    
-    Scans the text description for common data science/tech tools (Python, SQL, AWS, etc.)
-    and creates binary indicator columns (1 if present, 0 if not). This converts unstructured 
-    text into structured features suitable for ML models.
+    Parses the 'Revenue' column to extract numeric revenue values in millions.
+    Creates 'revenue_min_m' and 'revenue_max_m' columns.
+    Handles ranges and units (million, billion).
     """
     import numpy as np
+    import re
     
     df_out = df.copy()
     change_log = []
 
-    if 'Job Description' in df_out.columns:
-        # Define a curated list of relevant skills based on typical data job descriptions
-        skills_to_check = [
-            'python', 'r ', 'r,', 'sql', 'java', 'c++', 'aws', 'azure', 'google cloud',
-            'excel', 'tableau', 'power bi', 'powerbi', 'spark', 'hadoop', 'scala',
-            'tensorflow', 'pytorch', 'keras', 'pandas', 'numpy', 'scikit-learn',
-            'machine learning', 'deep learning', 'nlp', 'statistics'
-        ]
-        
-        # Clean up skill names for column naming (remove spaces, special chars)
-        def clean_skill_name(skill):
-            return skill.replace(' ', '_').replace(',', '').replace('.', '').lower()
+    if 'Revenue' not in df_out.columns:
+        return df_out, change_log
 
-        for skill in skills_to_check:
-            col_name = f"Skill_{clean_skill_name(skill)}"
+    def parse_revenue(rev_str):
+        if pd.isna(rev_str) or 'unknown' in str(rev_str).lower() or 'non-applicable' in str(rev_str).lower():
+            return np.nan, np.nan
+        
+        s = str(rev_str).lower()
+        # Determine multiplier
+        multiplier = 1
+        if 'billion' in s or 'bn' in s:
+            multiplier = 1000
+        elif 'million' in s or 'm' in s:
+            multiplier = 1
+        
+        # Extract numbers
+        numbers = re.findall(r'(\d+(?:\.\d+)?)', s)
+        
+        if not numbers:
+            return np.nan, np.nan
             
-            # Case-insensitive search
-            # Check if description is string to avoid errors on NaN
-            df_out[col_name] = df_out['Job Description'].apply(
-                lambda x: 1 if isinstance(x, str) and skill.lower() in x.lower() else 0
-            )
-
-        change_log.append({
-            'action': 'extract_job_skills',
-            'description': 'One-hot encoded key technical skills from Job Description',
-            'columns_added_count': len(skills_to_check),
-            'skills_detected': skills_to_check
-        })
-    else:
-        change_log.append({
-            'action': 'extract_job_skills',
-            'description': 'Column not found',
-            'status': 'skipped'
-        })
-
-    return df_out, change_log
-
-
-def compare_location_hq(df):
-    """
-    Creates a boolean feature indicating if the job location matches the company headquarters.
-    
-    Compares the state extracted from 'Location' with the state extracted from 'Headquarters'.
-    Returns True if they match, False otherwise, and NaN if data is missing. 
-    This can be useful for analyzing remote vs. on-site trends or relocation requirements.
-    """
-    import numpy as np
-    
-    df_out = df.copy()
-    change_log = []
-
-    # Requires the state columns to exist. If not, we attempt to extract them simply here 
-    # or skip if the prerequisite transformation hasn't run. 
-    # For robustness, we will check if the specific state columns exist, otherwise fallback to raw string comparison.
-    
-    if 'Location_State' in df_out.columns and 'Headquarters_State' in df_out.columns:
-        # Compare the extracted states
-        # Handle -1 or missing values explicitly
-        def is_match(loc_state, hq_state):
-            if loc_state == '-1' or hq_state == '-1':
-                return np.nan
-            if isinstance(loc_state, str) and isinstance(hq_state, str):
-                return loc_state == hq_state
-            return np.nan
-
-        df_out['Is_Location_HQ'] = df_out.apply(
-            lambda row: is_match(row['Location_State'], row['Headquarters_State']), 
-            axis=1
-        )
+        nums = [float(n) * multiplier for n in numbers]
         
-        match_count = df_out['Is_Location_HQ'].sum()
-        
-        change_log.append({
-            'action': 'compare_location_hq',
-            'description': 'Compared Location state vs Headquarters state',
-            'column_added': 'Is_Location_HQ',
-            'matches_found': int(match_count)
-        })
-    else:
-        change_log.append({
-            'action': 'compare_location_hq',
-            'description': 'Prerequisite columns (Location_State, Headquarters_State) not found',
-            'status': 'skipped'
-        })
+        if '+' in s:
+            return nums[0], np.inf
+        elif len(nums) >= 2:
+            return nums[0], nums[1]
+        else:
+            return nums[0], nums[0]
 
+    rev_data = df_out['Revenue'].apply(parse_revenue)
+    df_out['revenue_min_m'] = rev_data.apply(lambda x: x[0])
+    df_out['revenue_max_m'] = rev_data.apply(lambda x: x[1])
+    
+    change_log.append("Parsed 'Revenue' into numeric min/max values (in millions).")
     return df_out, change_log
 
 ===== REASONING =====
@@ -344,23 +355,29 @@ def compare_location_hq(df):
 
 # === APPEND REASONING BELOW ===
 
-Function Name: clean_company_name
-Reasoning: The data analysis identified a critical issue where 92.6% of 'Company Name' values contained embedded newlines (e.g., "Company Name\n3.5"). This concatenates the company name with its rating. To make the data usable for grouping or filtering by company, the name must be isolated. The function splits the string on the newline character and retains the first segment, effectively removing the rating.
+transform_salary_estimate:
+The 'Salary Estimate' column contains string data with ranges (e.g., "$100K - $150K") and text artifacts. To make this usable for analysis or ML models, it must be converted to numeric format. The helper instructions specify storing salary in thousands. This function extracts the minimum and maximum values, handles the 'K' unit, removes non-numeric text, and creates three new columns: min, max, and average salary in thousands. This preserves the range information while providing a single numeric feature (average) for modeling.
 
-Function Name: parse_salary_estimate
-Reasoning: The 'Salary Estimate' column is currently a string object containing ranges like "$37K-$91K (Glassdoor est.)". This format prevents numerical analysis. The instructions specify storing salary in thousands for readability. The function uses regex to extract the numeric boundaries, interprets 'K' as the thousands multiplier (so 37K becomes 37), and creates two new numeric columns: 'Salary_Min_K' and 'Salary_Max_K'.
+transform_rating:
+The 'Rating' column statistics show a minimum value of -1.0, which is structurally impossible for a standard 0-5 rating scale and likely represents missing or unknown data. The helper instructions suggest converting uncharacteristically negative values to NaN. This function replaces -1.0 with NaN to properly handle missingness in subsequent analyses.
 
-Function Name: extract_location_state
-Reasoning: The 'Location' and 'Headquarters' columns contain full strings like "New York, NY". For regional analysis and machine learning features, high cardinality text is less useful than standardized codes. The instructions explicitly ask to simplify location information (e.g., "New York, NY -> NY"). This function extracts the state/province code by splitting on the comma and stripping whitespace, creating 'Location_State' and 'Headquarters_State'.
+transform_founded_to_age:
+The 'Founded' column contains years, but for analysis, the age of the company is often more predictive than the founding year itself. The helper instructions explicitly ask to convert founding years to entity age. This function handles the -1.0 missing values by converting them to NaN and calculates age based on a reference year of 2020 (derived from the max year in the dataset being 2019).
 
-Function Name: calculate_company_age
-Reasoning: The 'Founded' column contains years, but for analysis, the "age" of a company is often more predictive than the specific founding year (e.g., startups vs. established corps). The instructions advise converting dates to age/time_since metrics. This function calculates the difference between the current year and the 'Founded' year. It also handles the missing data indicator (-1) by converting it to NaN to avoid skewing the age calculation with negative numbers.
+transform_job_title_seniority:
+The 'Job Title' column has high cardinality (172 unique values). The helper instructions suggest reducing cardinality and extracting seniority. This function maps various keywords (e.g., "Senior", "Manager", "Intern") to standardized seniority levels (Entry, Junior, Intermediate, Senior, Manager, Executive, C-Level). This reduces dimensionality while retaining critical information about the role's level.
 
-Function Name: extract_job_seniority
-Reasoning: The 'Job Title' column has high cardinality (172 unique values), which is problematic for many ML models. The instructions suggest picking attributes for role seniority. This function maps keywords (Senior, Junior, Lead, etc.) to standardized categories ('Senior/Lead', 'Junior/Entry', 'Mid-Level'). This reduces dimensionality while retaining critical information about experience level.
+transform_location_state:
+The 'Location' column contains full strings like "New York, NY". The helper instructions specify simplifying location information to extract states/provinces. This function splits the string and extracts the state code, which is useful for regional analysis and reduces the complexity of the location string.
 
-Function Name: extract_job_skills
-Reasoning: The 'Job Description' is a high-cardinality text field. The instructions state: "If there are key skills or words listed... attempt one hot encoding". This function scans the description for a curated list of relevant tech skills (Python, SQL, AWS, etc.) and creates binary (0/1) columns for each. This transforms unstructured text into structured features ready for model training.
+transform_hq_location_match:
+The helper instructions suggest using boolean logic to determine if Headquarters and Location are the same. This can be a useful feature for predicting salary or job type (e.g., remote vs. on-site). This function cleans the strings and creates a boolean column indicating a match.
 
-Function Name: compare_location_hq
-Reasoning: The instructions suggest using boolean logic to determine if two elements are the same, specifically mentioning "are headquarters and location the same". This function compares the 'Location_State' and 'Headquarters_State' columns (generated by a previous step) to create a boolean 'Is_Location_HQ' column. This feature can indicate if a job is likely at the main campus or a satellite office, which may correlate with salary or culture.
+transform_job_description_skills:
+The 'Job Description' column contains unstructured text. The helper instructions suggest extracting binary indicators for key skills. This function searches for common tech skills (Python, SQL, AWS, etc.) and creates boolean columns for each. This converts high-dimensional text data into a format suitable for machine learning models.
+
+transform_size_numeric:
+The 'Size' column contains categorical strings like "51 to 200 employees". The helper instructions suggest converting strings to numeric where possible. This function parses these strings to extract the minimum and maximum number of employees, creating numeric features that represent company scale.
+
+transform_revenue_numeric:
+Similar to 'Size', the 'Revenue' column contains string ranges with units (million/billion). The helper instructions suggest converting strings to numeric. This function parses the revenue, normalizes everything to millions (e.g., $1 billion -> 1000), and creates min/max numeric columns for financial analysis.
