@@ -59,6 +59,8 @@ Given a DataFrame, the system will:
 
 This system **does NOT send raw data values** to the LLM.
 
+It does send **COLUMN NAMES**, a future feature will be added to restrict this behaviour!
+
 Instead, it extracts and transmits descriptive metadata **only**, such as:
 
 * Dataset shape and schema
