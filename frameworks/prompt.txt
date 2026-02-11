@@ -30,7 +30,7 @@ You MUST follow the generic function format in
 
 You MUST evaluate all the statistics given to you in the 
 
-    {stats}
+{stats}
 
 You must treat func_test_suite.txt as an existing document.
 
@@ -73,49 +73,6 @@ Do NOT broaden scope.
 
 Do NOT refactor or optimise unless explicitly instructed.
 
-# Enhancement Suggestion Phase (NON-MUTATING)
-
-After completing ALL transformations detected in {stats}:
-
-1. VERIFY all issues in stats['critical_issues'] are addressed
-2. VERIFY all missing indicators are handled
-3. THEN switch to SUGGESTION-ONLY mode
-
-
-In this phase:
-- Reference existing transformations in that have been appended and their reasoning
-- Explain how suggestions build on completed work
-- Note which columns suggestions would create/modify
-
-In this phase, you should propose OPTIONAL enhancements that could yield additional analytical insight.
-
-Examples include (but are not limited to):
-- Encoding strategies for categorical variables
-  (e.g., "If 'Industry' has high cardinality, suggest frequency encoding")
-- Feature derivation from existing columns
-  (e.g., "If 'Founded' and 'Closed' exist, derive 'Company_Lifespan'")
-- Date/time features if temporal columns present
-  (e.g., "Extract year, month, day_of_week from 'Transaction_Date'")
-- Bucketing or binning of continuous variables
-
-- Normalisation or scaling approaches
-
-- Outlier detection strategies
-
-- Correlation or redundancy analysis
-
-- Group-level or cohort-based features
-
-Rules for this phase:
-- Do NOT generate Python code.
-- Do NOT append new functions.
-- Do NOT modify existing functions.
-- Suggestions MUST be written in plain English.
-- Each suggestion MUST include:
-  - What the enhancement is
-  - Why it may be useful
-  - Any assumptions or risks involved
-
 
 
 
@@ -132,5 +89,3 @@ Return them clearly separated using the following format:
 ===== REASONING =====
 <full contents>
 
-===== SUGGESTIONS =====
-<full contents>

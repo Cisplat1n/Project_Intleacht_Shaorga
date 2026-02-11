@@ -1,0 +1,64 @@
+# Enhancement Suggestion Phase (NON-MUTATING)
+
+## Verification of Critical Issues
+
+Based on the provided statistics and the existing transformation functions, here is the status of the critical issues identified in the data:
+
+1.  **Salary Estimate (Range Format):** **ADDRESSED**. The `parse_salary_estimate` function successfully extracts numeric min/max values from the string ranges.
+2.  **Job Description (Embedded Newlines):** **PARTIALLY ADDRESSED**. The `extract_job_skills` function processes the text effectively despite the newlines. However, the raw `Job Description` column itself remains uncleaned.
+3.  **Company Name (Embedded Newlines):** **ADDRESSED**. The `clean_company_name` function removes the newline and rating suffix.
+4.  **Rating (Negative Missing Indicator -1):** **NOT ADDRESSED**. The statistics indicate 50 values are -1. No existing function converts these to NaN.
+5.  **Founded (Negative Missing Indicator -1):** **ADDRESSED**. The `calculate_company_age` function explicitly checks for values > 0 and converts -1 to NaN during the age calculation.
+
+## Verification of Missing Indicators
+
+The following columns contain missing indicators (mostly "-1" or "Unknown") that are **NOT** currently handled by the provided functions:
+*   `Size` (-1, Unknown)
+*   `Type of ownership` (-1, Unknown)
+*   `Industry` (-1)
+*   `Sector` (-1)
+*   `Revenue` (-1)
+*   `Competitors` (-1)
+
+## Enhancement Suggestions
+
+### Suggestion 1: Clean Rating Column
+**What:**
+Create a function to replace -1 values in the 'Rating' column with NaN (Not a Number).
+
+**Why:**
+The 'Rating' column currently uses -1 as a placeholder for missing data (7.44% of rows). Leaving this as -1 will skew statistical calculations (mean, median) and negatively impact machine learning models that assume numerical values are continuous measurements. Converting -1 to NaN standardizes the missing data representation.
+
+**Assumptions or Risks:**
+*   Assumes that -1 is strictly a missing indicator and not a valid rating (which is impossible for a standard 1-5 scale).
+*   Risk: If downstream processes do not handle NaN values, this may cause errors, though this is the standard pandas approach.
+
+### Suggestion 2: Parse Revenue into Numeric Values
+**What:**
+Create a function to parse the 'Revenue' column strings (e.g., "$1 to $5 billion (USD)") into a numeric midpoint or a standardized ordinal category.
+
+**Why:**
+'Revenue' is currently an object/string type. To analyze the correlation between company revenue and salary, or to use revenue as a feature in a model, it must be converted to a number. Extracting the midpoint of the range (e.g., $3 billion) preserves the most information while converting the type.
+
+**Assumptions or Risks:**
+*   Assumes the format is consistently "Range (Currency)" or "Unknown".
+*   Risk: "Unknown / Non-Applicable" values must be handled gracefully (converted to NaN).
+*   Risk: Converting billions to millions requires a consistent multiplier strategy to avoid scale errors.
+
+### Suggestion 3: Parse Company Size into Employee Counts
+**What:**
+Create a function to parse the 'Size' column (e.g., "51 to 200 Employees") into numeric minimum and maximum employee counts, or a single average value.
+
+**Why:**
+Similar to revenue, company size is a strong predictor for salary and role structure. The current text format prevents quantitative analysis. Converting this to a numeric feature allows for regression analysis or grouping by company magnitude.
+
+**Assumptions or Risks:**
+*   Assumes "10000+ Employees" is the upper bound and requires a specific handling strategy (e.g., treating the max as 10000 or a larger arbitrary number).
+*   Risk: "Unknown" values need to be converted to NaN.
+
+### Suggestion 4, which could serve as a proxy for market competition or the company's prominence in the sector.
+
+**Assumptions or Risks:**
+*   Assumes the delimiter is consistently a comma.
+*   Risk: The value "-1" is used for missing data; the function must distinguish between the string "-1" and a list of competitors.
+*   Risk: Company names might contain commas, though this is less likely in this specific dataset structure.
