@@ -223,7 +223,7 @@ do_not_drop: Keep all original columns
 privacy_level: Do not expose PII in outputs
 ```
 
-**Pro tip:** Start without helper registry, then add guidance based on first run results.
+**Tip:** Start without helper registry, then add guidance based on first run results.
 
 ---
 
@@ -232,8 +232,7 @@ privacy_level: Do not expose PII in outputs
 **What happens:**
 1. LLM analyses assembles the full prompt based on the frameworks (uses statistics + helper registry)
 2. Generates transformation functions
-3. Writes code to `llm_cleaning/llm_output.txt`
-4. Writes reasoning to internal reasoning section
+3. Writes code and reasoning to `llm_cleaning/llm_output.txt`
 
 **Output files:**
 ```
@@ -250,7 +249,7 @@ llm_output.txt
 **When:** After code has been generated and reviewed 
 
 **How:**
-1. Send the suggested code + stats back into the LLM
+1. Send the suggested code + initial stats back into the LLM
 2. LLM automatically enters "suggestion mode"
 3. Receives suggestions in `llm_suggestions/llm_suggestions.txt`
 
@@ -347,9 +346,7 @@ use only these exact column names: [long list]
 
 ### Custom Profiling
 
-Edit `df_checker.py` to add domain-specific checks:
-python
-
+Edit `df_checker.py` to add domain-specific checks
 
 ---
 
@@ -364,7 +361,7 @@ A: Check if they:
 - Explain analytical value clearly
 - Note risks/assumptions
 - Build on completed transformations
-- Always ensure you know what each function does before performing in on your data!
+- Always ensure you know what each function does before performing it on your data!
 
 **Q: Can I edit generated functions?**  
 A: Yes! They're just Python functions. Copy to your script and modify as needed.
@@ -379,16 +376,7 @@ A: Append below the marker in `func_test_suite.txt` following the same format.
 A: Yes, but run one at a time. Clean workspace between datasets.
 
 **Q: What models work best?**  
-A: Tested: GLM-4.7, llama 3.3 70b, and GPT OSS
-
----
-
-## Next Steps
-
-1. **First run**: Try with sample data, no helper_reg
-2. **Learn**: Review what LLM detected and suggested
-3. **Refine**: Add helper_reg guidance for your use case
-4. **Integrate**: Package functions for production use
+A: Tested: GLM-4.7 (this was the best one in my limited testing!), llama 3.3 70b, and GPT OSS
 
 ---
 
@@ -416,7 +404,9 @@ A: Tested: GLM-4.7, llama 3.3 70b, and GPT OSS
 
 ### Status
 
-Approaching end status!
+Feature complete for now! 
+
+Will add additional QoL features in the future!
 
 Contributions, critiques, and experiments welcome.
 
