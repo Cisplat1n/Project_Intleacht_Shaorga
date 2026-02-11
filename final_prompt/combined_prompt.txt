@@ -6,10 +6,8 @@ You are an expert python developer and a data analysis expert that helps generat
 - Human-readable and reviewable
 
 When analyzing datasets:
-1. First use pandas to inspect the actual data (df.head(), df.dtypes, df.describe())
-2. Check for ALL data quality issues (missing values, formatting, embedded data, ranges)
-3. Test your suggested transformations before proposing them
-4. Provide working, executable code with error handling
+1. Test your suggested transformations before proposing them
+2. Provide working, executable code with error handling
 
 The contents of func_test_suite.txt are the SINGLE authoritative source of truth.
 All other instructions are subordinate to it.
@@ -103,7 +101,7 @@ You MUST follow the rules attached to the top the func_test_suite.txt field
 
 You MUST append code in accordance to those rules
 
-You MUST return the FULL func_test_suite.txt as both a .txt and .py field
+You MUST return the FULL func_test_suite.txt as a .txt
 
 You MUST MAKE ZERO MISTAKES
 
@@ -148,7 +146,9 @@ If there is high cardinality in a column, attempt to reduce cardinality as much 
 You MUST 'think' twice about each piece of code generated
 
 You MUST ensure that you also fill the reasoning.txt with the reasons behind each suggested code chunk
+
 Text above the append marker in reasoning.txt is IMMUTABLE.
+
 Text below the append marker is WRITABLE.
 
     #Use this file to store the function name for each piece of generated code,
@@ -169,26 +169,61 @@ Do NOT broaden scope.
 
 Do NOT refactor or optimise unless explicitly instructed.
 
-
-
 # Enhancement Suggestion Phase (NON-MUTATING)
 
-After completing ALL required data cleaning and quality transformations:
+After completing ALL transformations detected in ===== shape =====
+(672, 15)
 
-1. You MUST STOP appending code.
-2. You MUST NOT modify func_test_suite.txt further.
-3. You MUST switch to SUGGESTION-ONLY mode.
+===== column_names =====
+['index', 'Job Title', 'Salary Estimate', 'Job Description', 'Rating', 'Company Name', 'Location', 'Headquarters', 'Size', 'Founded', 'Type of ownership', 'Industry', 'Sector', 'Revenue', 'Competitors']
+
+===== dtype_counts =====
+{dtype('O'): 12, dtype('int64'): 2, dtype('float64'): 1}
+
+===== missing_values =====
+{'columns_high_missing_pct': {}}
+
+===== categorical_summary =====
+{'Job Title': {'unique_count': 172, 'high_cardinality': True, 'value_structure_examples': ['ALPHA(2)-SPACE-ALPHA(4)-SPACE-ALPHA(9)', 'ALPHA(4)-SPACE-ALPHA(9)', 'ALPHA(4)-SPACE-ALPHA(9)', 'ALPHA(4)-SPACE-ALPHA(9)', 'ALPHA(4)-SPACE-ALPHA(9)'], 'embedded_data_signals': {'newlines': 0, 'tabs': 0, 'pipes': 0, 'semicolons': 0}, 'character_analysis': {'avg_length': 22.6, 'max_length': 96, 'contains_digits_pct': np.float64(1.0), 'contains_special_pct': np.float64(26.0)}, 'detected_formats': {'has_number_range': np.int64(1), 'has_comma_list': np.int64(4)}, 'missing_indicators': {}}, 'Salary Estimate': {'unique_count': 30, 'high_cardinality': False, 'value_structure_examples': ["'$'-DIGIT(3)-ALPHA(1)-'-'-'$'-DIGIT(3)-ALPHA(1)-SPACE-'('-ALPHA(9)-SPACE-ALPHA(3)-'.'-')'", "'$'-DIGIT(3)-ALPHA(1)-'-'-'$'-DIGIT(3)-ALPHA(1)-SPACE-'('-ALPHA(9)-SPACE-ALPHA(3)-'.'-')'", "'$'-DIGIT(3)-ALPHA(1)-'-'-'$'-DIGIT(3)-ALPHA(1)-SPACE-'('-ALPHA(9)-SPACE-ALPHA(3)-'.'-')'", "'$'-DIGIT(3)-ALPHA(1)-'-'-'$'-DIGIT(3)-ALPHA(1)-SPACE-'('-ALPHA(9)-SPACE-ALPHA(3)-'.'-')'", "'$'-DIGIT(3)-ALPHA(1)-'-'-'$'-DIGIT(3)-ALPHA(1)-SPACE-'('-ALPHA(9)-SPACE-ALPHA(3)-'.'-')'"], 'embedded_data_signals': {'newlines': 0, 'tabs': 0, 'pipes': 0, 'semicolons': 0}, 'character_analysis': {'avg_length': 27.3, 'max_length': 28, 'contains_digits_pct': np.float64(100.0), 'contains_special_pct': np.float64(100.0)}, 'detected_formats': {'has_currency_range': np.int64(672)}, 'missing_indicators': {}}, 'Job Description': {'unique_count': 489, 'high_cardinality': True, 'value_structure_examples': ["ALPHA(11)-NEWLINE-NEWLINE-ALPHA(3)-SPACE-ALPHA(6)-SPACE-ALPHA(4)-SPACE-ALPHA(9)-SPACE-ALPHA(2)-SPACE-ALPHA(11)-SPACE-ALPHA(3)-SPACE-ALPHA(8)-','-SPACE", "ALPHA(6)-SPACE-ALPHA(3)-SPACE-ALPHA(6)-','-SPACE-ALPHA(6)-SPACE-ALPHA(4)-SPACE-ALPHA(6)-NEWLINE-NEWLINE-ALPHA(4)-SPACE-ALPHA(3)-SPACE-ALPHA(3)-SPACE", 'ALPHA(8)-NEWLINE-NEWLINE-NEWLINE-ALPHA(8)-SPACE-ALPHA(5)-SPACE-ALPHA(2)-SPACE-ALPHA(3)-SPACE-ALPHA(2)-SPACE-ALPHA(3)-SPACE-ALPHA(7)-SPACE-ALPHA(13)-SPACE', "ALPHA(3)-SPACE-ALPHA(11)-':'-NEWLINE-NEWLINE-ALPHA(2)-SPACE-ALPHA(3)-SPACE-ALPHA(4)-SPACE-ALPHA(1)-SPACE-ALPHA(7)-SPACE-ALPHA(3)-SPACE-ALPHA(4)-SPACE", "ALPHA(4)-SPACE-ALPHA(9)-NEWLINE-ALPHA(8)-SPACE-ALPHA(9)-SPACE-'/'-SPACE-ALPHA(9)-SPACE-ALPHA(5)-SPACE-ALPHA(5)-SPACE-ALPHA(5)-','-SPACE-ALPHA(7)"], 'embedded_data_signals': {'newlines': 632, 'tabs': 0, 'pipes': 9, 'semicolons': 202}, 'character_analysis': {'avg_length': 3484.6, 'max_length': 10524, 'contains_digits_pct': np.float64(90.8), 'contains_special_pct': np.float64(100.0)}, 'detected_formats': {'has_email_format': np.int64(50), 'has_url_format': np.int64(48), 'has_phone_format': np.int64(27), 'has_date_format': np.int64(5), 'has_number_range': np.int64(128), 'has_comma_list': np.int64(670)}, 'missing_indicators': {}}, 'Company Name': {'unique_count': 432, 'high_cardinality': True, 'value_structure_examples': ["ALPHA(11)-NEWLINE-DIGIT(1)-'.'-DIGIT(1)", "ALPHA(7)-NEWLINE-DIGIT(1)-'.'-DIGIT(1)", "ALPHA(8)-SPACE-ALPHA(5)-NEWLINE-DIGIT(1)-'.'-DIGIT(1)", "ALPHA(7)-NEWLINE-DIGIT(1)-'.'-DIGIT(1)", "ALPHA(8)-SPACE-ALPHA(9)-NEWLINE-DIGIT(1)-'.'-DIGIT(1)"], 'embedded_data_signals': {'newlines': 622, 'tabs': 0, 'pipes': 0, 'semicolons': 0}, 'character_analysis': {'avg_length': 18.4, 'max_length': 55, 'contains_digits_pct': np.float64(93.2), 'contains_special_pct': np.float64(93.6)}, 'detected_formats': {'has_number_range': np.int64(2)}, 'missing_indicators': {}}, 'Location': {'unique_count': 207, 'high_cardinality': True, 'value_structure_examples': ["ALPHA(3)-SPACE-ALPHA(4)-','-SPACE-ALPHA(2)", "ALPHA(9)-','-SPACE-ALPHA(2)", "ALPHA(6)-','-SPACE-ALPHA(2)", "ALPHA(6)-','-SPACE-ALPHA(2)", "ALPHA(3)-SPACE-ALPHA(4)-','-SPACE-ALPHA(2)"], 'embedded_data_signals': {'newlines': 0, 'tabs': 0, 'pipes': 0, 'semicolons': 0}, 'character_analysis': {'avg_length': 13.2, 'max_length': 26, 'contains_digits_pct': np.float64(0.0), 'contains_special_pct': np.float64(96.6)}, 'detected_formats': {'has_comma_list': np.int64(1)}, 'missing_indicators': {}}, 'Headquarters': {'unique_count': 229, 'high_cardinality': True, 'value_structure_examples': ["ALPHA(3)-SPACE-ALPHA(4)-','-SPACE-ALPHA(2)", "ALPHA(7)-','-SPACE-ALPHA(2)", "ALPHA(6)-','-SPACE-ALPHA(2)", "ALPHA(3)-SPACE-ALPHA(5)-','-SPACE-ALPHA(11)", "ALPHA(3)-SPACE-ALPHA(4)-','-SPACE-ALPHA(2)"], 'embedded_data_signals': {'newlines': 0, 'tabs': 0, 'pipes': 0, 'semicolons': 0}, 'character_analysis': {'avg_length': 12.8, 'max_length': 25, 'contains_digits_pct': np.float64(4.9), 'contains_special_pct': np.float64(100.0)}, 'detected_formats': {}, 'missing_indicators': {'-1': 31}}, 'Size': {'unique_count': 9, 'high_cardinality': False, 'value_structure_examples': ['DIGIT(4)-SPACE-ALPHA(2)-SPACE-DIGIT(4)-SPACE-ALPHA(9)', 'DIGIT(4)-SPACE-ALPHA(2)-SPACE-DIGIT(5)-SPACE-ALPHA(9)', 'DIGIT(4)-SPACE-ALPHA(2)-SPACE-DIGIT(4)-SPACE-ALPHA(9)', 'DIGIT(3)-SPACE-ALPHA(2)-SPACE-DIGIT(4)-SPACE-ALPHA(9)', 'DIGIT(2)-SPACE-ALPHA(2)-SPACE-DIGIT(3)-SPACE-ALPHA(9)'], 'embedded_data_signals': {'newlines': 0, 'tabs': 0, 'pipes': 0, 'semicolons': 0}, 'character_analysis': {'avg_length': 18.6, 'max_length': 23, 'contains_digits_pct': np.float64(97.5), 'contains_special_pct': np.float64(15.9)}, 'detected_formats': {}, 'missing_indicators': {'-1': 27, 'Unknown': 17}}, 'Type of ownership': {'unique_count': 13, 'high_cardinality': False, 'value_structure_examples': ['ALPHA(9)-SPACE-ALPHA(12)', "ALPHA(7)-SPACE-'-'-SPACE-ALPHA(6)", "ALPHA(7)-SPACE-ALPHA(8)-SPACE-'/'-SPACE-ALPHA(4)", "ALPHA(7)-SPACE-'-'-SPACE-ALPHA(6)", "ALPHA(7)-SPACE-'-'-SPACE-ALPHA(7)"], 'embedded_data_signals': {'newlines': 0, 'tabs': 0, 'pipes': 0, 'semicolons': 0}, 'character_analysis': {'avg_length': 16.8, 'max_length': 30, 'contains_digits_pct': np.float64(4.0), 'contains_special_pct': np.float64(87.2)}, 'detected_formats': {}, 'missing_indicators': {'-1': 27, 'Unknown': 4}}, 'Industry': {'unique_count': 58, 'high_cardinality': True, 'value_structure_examples': ['ALPHA(9)-SPACE-ALPHA(8)', "ALPHA(8)-SPACE-'&'-SPACE-ALPHA(11)", 'ALPHA(10)', "ALPHA(10)-SPACE-'&'-SPACE-ALPHA(10)-SPACE-ALPHA(13)", "ALPHA(11)-SPACE-'&'-SPACE-ALPHA(9)"], 'embedded_data_signals': {'newlines': 0, 'tabs': 0, 'pipes': 0, 'semicolons': 0}, 'character_analysis': {'avg_length': 19.5, 'max_length': 40, 'contains_digits_pct': np.float64(10.6), 'contains_special_pct': np.float64(64.3)}, 'detected_formats': {'has_comma_list': np.int64(4)}, 'missing_indicators': {'-1': 71}}, 'Sector': {'unique_count': 23, 'high_cardinality': False, 'value_structure_examples': ['ALPHA(9)', 'ALPHA(8)-SPACE-ALPHA(8)', 'ALPHA(8)-SPACE-ALPHA(8)', 'ALPHA(13)', 'ALPHA(8)-SPACE-ALPHA(8)'], 'embedded_data_signals': {'newlines': 0, 'tabs': 0, 'pipes': 0, 'semicolons': 0}, 'character_analysis': {'avg_length': 16.4, 'max_length': 34, 'contains_digits_pct': np.float64(10.6), 'contains_special_pct': np.float64(31.4)}, 'detected_formats': {'has_comma_list': np.int64(10)}, 'missing_indicators': {'-1': 71}}, 'Revenue': {'unique_count': 14, 'high_cardinality': False, 'value_structure_examples': ["ALPHA(7)-SPACE-'/'-SPACE-ALPHA(3)-'-'-ALPHA(10)", "'$'-DIGIT(1)-SPACE-ALPHA(2)-SPACE-'$'-DIGIT(1)-SPACE-ALPHA(7)-SPACE-'('-ALPHA(3)-')'", "'$'-DIGIT(3)-SPACE-ALPHA(2)-SPACE-'$'-DIGIT(3)-SPACE-ALPHA(7)-SPACE-'('-ALPHA(3)-')'", "'$'-DIGIT(3)-SPACE-ALPHA(2)-SPACE-'$'-DIGIT(3)-SPACE-ALPHA(7)-SPACE-'('-ALPHA(3)-')'", "ALPHA(7)-SPACE-'/'-SPACE-ALPHA(3)-'-'-ALPHA(10)"], 'embedded_data_signals': {'newlines': 0, 'tabs': 0, 'pipes': 0, 'semicolons': 0}, 'character_analysis': {'avg_length': 22.8, 'max_length': 32, 'contains_digits_pct': np.float64(68.3), 'contains_special_pct': np.float64(100.0)}, 'detected_formats': {}, 'missing_indicators': {'-1': 27}}, 'Competitors': {'unique_count': 108, 'high_cardinality': True, 'value_structure_examples': ["ALPHA(12)-','-SPACE-ALPHA(12)-SPACE-ALPHA(5)-','-SPACE-ALPHA(5)", "'-'-DIGIT(1)", "'-'-DIGIT(1)", "ALPHA(3)-SPACE-ALPHA(11)-','-SPACE-ALPHA(8)-SPACE-ALPHA(6)-','-SPACE-ALPHA(7)-SPACE-ALPHA(12)", "ALPHA(8)-SPACE-ALPHA(7)-','-SPACE-ALPHA(10)-','-SPACE-ALPHA(6)"], 'embedded_data_signals': {'newlines': 0, 'tabs': 0, 'pipes': 0, 'semicolons': 0}, 'character_analysis': {'avg_length': 10.7, 'max_length': 92, 'contains_digits_pct': np.float64(75.1), 'contains_special_pct': np.float64(99.1)}, 'detected_formats': {'has_comma_list': np.int64(135)}, 'missing_indicators': {'-1': 501}}}
+
+===== numeric_summary =====
+{'index': {'range': {'min': 0.0, 'max': 671.0, 'mean': 335.5, 'std': 194.13}, 'negative_values': {'count': 0, 'percentage': 0.0, 'likely_missing_indicator': False}, 'potentially_categorical': False, 'unique_count': 672, 'value_distribution': 'See range and stats above'}, 'Rating': {'range': {'min': -1.0, 'max': 5.0, 'mean': 3.52, 'std': 1.41}, 'negative_values': {'count': 50, 'percentage': 7.44, 'likely_missing_indicator': True}, 'potentially_categorical': False, 'unique_count': 32, 'value_distribution': 'See range and stats above'}, 'Founded': {'range': {'min': -1.0, 'max': 2019.0, 'mean': 1635.53, 'std': 756.75}, 'negative_values': {'count': 118, 'percentage': 17.56, 'likely_missing_indicator': True}, 'potentially_categorical': False, 'unique_count': 103, 'value_distribution': 'See range and stats above'}}
+
+===== critical_issues =====
+[{'column': 'Salary Estimate', 'issue': 'range_format', 'severity': 'HIGH', 'description': '672 values (100.0%) contain range format (e.g., $X-$Y)', 'explanation': 'Cannot be directly converted to numeric - needs parsing into min/max', 'example_structure': 'Format: $DIGIT-$DIGIT (estimated pattern)'}, {'column': 'Job Description', 'issue': 'embedded_newlines', 'severity': 'CRITICAL', 'description': '632 values (94.0%) contain newlines', 'explanation': 'This suggests multiple fields are concatenated in one column', 'example_structure': "ALPHA(11)-NEWLINE-NEWLINE-ALPHA(3)-SPACE-ALPHA(6)-SPACE-ALPHA(4)-SPACE-ALPHA(9)-SPACE-ALPHA(2)-SPACE-ALPHA(11)-SPACE-ALPHA(3)-SPACE-ALPHA(8)-','-SPACE"}, {'column': 'Job Description', 'issue': 'comma_separated_list', 'severity': 'MEDIUM', 'description': '670 values contain multiple commas (likely lists)', 'explanation': 'May need to be split into separate records or list column'}, {'column': 'Company Name', 'issue': 'embedded_newlines', 'severity': 'CRITICAL', 'description': '622 values (92.6%) contain newlines', 'explanation': 'This suggests multiple fields are concatenated in one column', 'example_structure': "ALPHA(11)-NEWLINE-DIGIT(1)-'.'-DIGIT(1)"}, {'column': 'Rating', 'issue': 'negative_missing_indicator', 'severity': 'HIGH', 'description': '50 negative values (min=-1.0)', 'explanation': 'Negative values (especially -1) likely represent missing data, not valid measurements'}, {'column': 'Founded', 'issue': 'negative_missing_indicator', 'severity': 'HIGH', 'description': '118 negative values (min=-1.0)', 'explanation': 'Negative values (especially -1) likely represent missing data, not valid measurements'}]
+
+===== privacy_note =====
+This analysis reveals data structure and format patterns without exposing actual content.
+
+:
+
+1. VERIFY all issues in stats['critical_issues'] are addressed
+2. VERIFY all missing indicators are handled
+3. THEN switch to SUGGESTION-ONLY mode
+
+
+In this phase:
+- Reference existing transformations in that have been appended and their reasoning
+- Explain how suggestions build on completed work
+- Note which columns suggestions would create/modify
 
 In this phase, you should propose OPTIONAL enhancements that could yield additional analytical insight.
 
 Examples include (but are not limited to):
-- Encoding strategies (one-hot, ordinal, frequency, target)
-- Feature derivation (ratios, deltas, aggregations)
-- Date/time feature extraction
+- Encoding strategies for categorical variables
+  (e.g., "If 'Industry' has high cardinality, suggest frequency encoding")
+- Feature derivation from existing columns
+  (e.g., "If 'Founded' and 'Closed' exist, derive 'Company_Lifespan'")
+- Date/time features if temporal columns present
+  (e.g., "Extract year, month, day_of_week from 'Transaction_Date'")
 - Bucketing or binning of continuous variables
+
 - Normalisation or scaling approaches
+
 - Outlier detection strategies
+
 - Correlation or redundancy analysis
+
 - Group-level or cohort-based features
 
 Rules for this phase:
@@ -201,7 +236,6 @@ Rules for this phase:
   - Why it may be useful
   - Any assumptions or risks involved
 
-You MUST wait for explicit instruction before implementing any suggested enhancement.
 
 
 
@@ -216,4 +250,7 @@ Return them clearly separated using the following format:
 <full contents>
 
 ===== REASONING =====
+<full contents>
+
+===== SUGGESTIONS =====
 <full contents>
