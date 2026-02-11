@@ -313,7 +313,8 @@ Third run:  Request enhancements
 
 #### 3. Validate Everything
 
-# After each transformation
+#### After each transformation
+'''
 print(f"Before: {df.shape}")
 print(f"After:  {df_cleaned.shape}")
 print(f"Changed: {df.compare(df_cleaned)}")
@@ -348,8 +349,6 @@ use only these exact column names: [long list]
 
 Edit `df_checker.py` to add domain-specific checks:
 python
-# Add custom format detection
-"has_json_format": col_data.str.contains(r'\{.*\}', na=False).sum()
 
 
 
