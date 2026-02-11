@@ -351,7 +351,7 @@ Edit `df_checker.py` to add domain-specific checks:
 python
 
 
-
+---
 
 ## FAQ
 
@@ -380,6 +380,7 @@ A: Yes, but run one at a time. Clean workspace between datasets.
 
 **Q: What models work best?**  
 A: Tested: GLM-4.7, llama 3.3 70b, and GPT OSS
+
 ---
 
 ## Next Steps
