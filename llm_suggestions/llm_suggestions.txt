@@ -1,23 +1,21 @@
 # Enhancement Suggestion Phase (NON-MUTATING)
 
-Based on the provided statistics and existing transformations, here are suggestions for further enhancements. These suggestions build upon the work already done (e.g., extracting seniority, parsing salary) to create a more robust feature set for analysis.
+1. **Handle Missing Values in 'Rating'**
+   - **What:** Create a function to identify and handle the -1.0 values in the 'Rating' column, likely converting them to NaN or imputing them based on the sector median.
+   - **Why:** The column statistics show a minimum value of -1.0 and a skewness of -2.31, suggesting that -1.0 is a placeholder for missing data rather than a valid rating. This mirrors the logic used in `calculate_company_age` where -1 was handled for the 'Founded' column. Cleaning this will prevent the placeholder from skewing analysis of company performance.
+   - **Assumptions:** Assumes -1.0 strictly represents missing/null data and not a valid negative rating (which is impossible for standard 1-5 scales).
 
-### Suggestion 1: Competitor Count Extraction
-- **What:** Parse the `Competitors` column to create a new numeric column `competitor_count`.
-- **Why:** The `Competitors` column currently contains comma-separated company names or missing values (indicated by the 74.6% dominant value). Converting this into a count of competitors provides a numeric feature representing market competition or company prominence, which is more useful for modeling than a list of names.
-- **Assumptions/Risks:** Assumes the delimiter is a comma. Assumes the dominant value (likely "-1" or empty) represents zero competitors. There is a risk that some entries contain non-standard formatting that requires robust regex handling.
+2. **Parse 'Competitors' into 'Competitor_Count'**
+   - **What:** Create a function to parse the 'Competitors' string column to count the number of competitors listed, creating a new numeric column 'Competitor_Count'.
+   - **Why:** The 'Competitors' column has a high dominant value (74.6%) and mixed types, likely containing comma-separated names or "Unknown". Converting this to a count provides a numeric feature representing market competition density, similar to how `parse_size` converted string ranges into numeric employee counts.
+   - **Assumptions:** Assumes competitors are consistently separated by commas and that "Unknown" or empty strings should result in a count of 0.
 
-### Suggestion 2: Primary Job Role Extraction
-- **What:** Extract the primary job role (e.g., 'Data Scientist', 'Data Analyst', 'Software Engineer') from the `Job Title` column into a new `job_role` column.
-- **Why:** The existing `transform_job_title_seniority` function successfully extracts seniority levels. However, the specific role is equally important for analysis. Extracting the role reduces the cardinality of the `Job Title` column (currently 172 unique values) into a manageable set of standard categories, facilitating grouping and comparison.
-- **Assumptions/Risks:** Assumes that the role name appears as a distinct keyword within the title. There is a risk of misclassifying hybrid roles (e.g., "Senior Data Scientist and Manager") if simple keyword matching is used without priority rules.
+3. **Clean 'Company Name' by Removing Appended Ratings**
+   - **What:** Create a function to strip numeric ratings or newline characters often found appended to the end of the 'Company Name' string in this dataset.
+   - **Why:** The 'Company Name' column has 432 *(sic)* unique values. In many Glassdoor-derived datasets, the company rating is appended to the name (e.g., "Company Name\n3.5"). Cleaning this ensures accurate grouping and prevents the rating from appearing in the name field. This builds on the string manipulation techniques used in `simplify_location`.
+   - **Assumptions:** Assumes the rating is always separated by a newline or specific delimiter and appears at the end of the string.
 
-### Suggestion 3: Company Name Cleaning
-- **What:** Clean the `Company Name` column by removing newline characters, trailing whitespace, and any non-alphanumeric artifacts (like ratings sometimes appended in scraped data).
-- **Why:** While `Company Name` has high cardinality (432 unique values), it is often used for merging datasets or visualization. Artifacts like `\n` or inconsistent spacing can prevent accurate matching or grouping. This ensures the `Company Name` is a clean string identifier.
-- **Assumptions/Risks:** Assumes artifacts are limited to standard whitespace or newline characters. There is a risk of over-cleaning if legitimate special characters are part of a company's legal name.
-
-### Suggestion 4: Tech Sector Flag
-- **What:** Create a boolean column `is_tech_sector` by checking if the `Sector` or `Industry` column contains keywords like "Information Technology", "Software", or "Computer".
-- **Why:** In job market analysis, distinguishing between tech companies and non-tech companies (e.g., a bank hiring a data analyst) is often a critical predictor for salary and job requirements. This binary flag simplifies the `Sector` column (23 unique values) into a high-signal feature.
-- **Assumptions/Risks:** Assumes that specific keywords accurately define the "tech" sector. There is a risk of misclassifying companies in adjacent sectors (e.g., "Telecommunications") depending on the strictness of the keyword list.
+4. **Calculate 'Description_Length'**
+   - **What:** Create a function to calculate the character or word count of the 'Job Description' column.
+   - **Why:** While `extract_job_skills` identifies specific keywords, the length of the description can serve as a proxy for role complexity, seniority, or detail level. This adds a continuous numeric feature derived from text, complementing the binary features created in `extract_job_skills`.
+   - **Assumptions:** Assumes longer descriptions correlate with more detailed job requirements or seniority levels.

@@ -265,10 +265,68 @@ def df_checker_v2(data: pd.DataFrame) -> dict:
 
         column_profiles[col] = profile
 
+        # ==============================
+        # COLUMN NAME STRUCTURAL ANALYSIS
+        # ==============================
+
+        column_name_profiles = {}
+
+        for col in data.columns:
+
+            name = str(col)
+
+            # Basic structural properties
+            length = len(name)
+            contains_digit = any(c.isdigit() for c in name)
+            contains_special = any(not c.isalnum() and c != "_" for c in name)
+
+            # Tokenisation by underscore and basic camelCase splitting
+            tokens = (
+                name.replace("-", "_")
+                    .replace(" ", "_")
+                    .split("_")
+            )
+
+            token_count = len([t for t in tokens if t])
+
+            # Case pattern detection
+            if name.isupper():
+                case_type = "UPPERCASE"
+            elif name.islower():
+                case_type = "lowercase"
+            elif "_" in name:
+                case_type = "snake_case"
+            elif name[:1].isupper() and not "_" in name:
+                case_type = "PascalCase"
+            elif any(c.isupper() for c in name[1:]):
+                case_type = "camelCase"
+            else:
+                case_type = "mixed"
+
+            # Semantic keyword detection (non-sensitive heuristics)
+            lowered = name.lower()
+
+            semantic_flags = {
+                "likely_id_column": any(k in lowered for k in ["id", "uuid", "key", "ref"]),
+                "likely_datetime_column": any(k in lowered for k in ["date", "time", "timestamp"]),
+                "likely_amount_column": any(k in lowered for k in ["amount", "price", "cost", "revenue", "salary"]),
+                "likely_count_column": any(k in lowered for k in ["count", "num", "qty", "quantity"]),
+                "likely_ratio_column": any(k in lowered for k in ["rate", "pct", "percent", "ratio"]),
+            }
+
+            column_name_profiles[name] = {
+                "length": length,
+                "token_count": token_count,
+                "contains_digit": contains_digit,
+                "contains_special_char": contains_special,
+                "case_pattern": case_type,
+                **semantic_flags
+            }
     return {
         "shape": shape,
         "dtype_counts": dtype_counts,
         "high_missing_columns_pct": cols_high_missing,
         "column_profiles": column_profiles,
-        "privacy_note": "All metrics derived from structural properties only."
+        "column_name_profiles": column_name_profiles,
+        "privacy_note": "All metrics derived from structural and schema-level properties only."
     }

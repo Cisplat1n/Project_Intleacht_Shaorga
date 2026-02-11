@@ -16,7 +16,7 @@ Instead of manually writing repetitive validation and cleaning logic, this tool:
 * Accepts structured instructions and a statistics about a pandas dataframe
 * Builds a prompt from a predefined, constrained skeleton (which also has a helper_reg for additional constraints)
 * Sends that prompt to an LLM (GLM-4.7) via an API (Cerebras Inference)
-* Receives suggested transformations, justifications, and improvements
+* Receives suggested transformations and reasonings/justifications
 * Then also enables the user to send the stats and suggested transformations back to the LLM for additional suggestions
 
 The goal is not blind automation, but **transparent, explainable data tidying**.
