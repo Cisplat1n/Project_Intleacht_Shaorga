@@ -279,15 +279,17 @@ llm_output.txt
 
 **Before each new dataset:**
 
-```bash
+bash
 # Clear generated outputs
 rm -rf stats/*
 rm -rf final_prompt/*
 rm -rf llm_cleaning/*
 rm -rf temp/*
-rm -rf llm_suggestions/* 
+rm -rf llm_suggestions/*
 
 
+
+**Before each new dataset:**
 
 **Why:** Old outputs can confuse the LLM or cause append conflicts.
 
@@ -295,7 +297,9 @@ rm -rf llm_suggestions/*
 
 ### Optimisation Tips
 
+'''
 #### 1. Start Simple
+
 ```
 First run:  No helper_reg, just let LLM detect issues
 Second run: Add guidance based on what was missed
@@ -308,12 +312,13 @@ Third run:  Request enhancements
 - Each iteration improves results
 
 #### 3. Validate Everything
-```python
+python
 # After each transformation
 print(f"Before: {df.shape}")
 print(f"After:  {df_cleaned.shape}")
 print(f"Changed: {df.compare(df_cleaned)}")
-```
+
+'''
 
 #### 4. Use Helper Registry Strategically
 
@@ -342,10 +347,10 @@ use only these exact column names: [long list]
 ### Custom Profiling
 
 Edit `df_checker.py` to add domain-specific checks:
-```python
+python
 # Add custom format detection
 "has_json_format": col_data.str.contains(r'\{.*\}', na=False).sum()
-```
+
 
 
 
