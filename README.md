@@ -32,7 +32,7 @@ Given a DataFrame, the system will:
    * Dataset shape and dimensionality
    * Column names and data types
    * Missing value patterns
-   * Descriptive statistics and distributions
+   * Descriptive metastatistics and distributions
    * Structural and format characteristics (e.g. ranges, delimiters, embedded newlines)
 
 2. **Generate suggested transformation code**

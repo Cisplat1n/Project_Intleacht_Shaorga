@@ -11,6 +11,7 @@ from scipy.stats import entropy
 #Data Read in function 
 ########################
 
+#This function was written by me 
 def read_df(input):
     if isinstance(input, pd.DataFrame):
         return input
@@ -33,6 +34,9 @@ def read_df(input):
 #Main function to call
 ########################
 
+# For the sake of transparency, this function was created by ChatGPT and was derived from the original df_checker function, 
+# but with significant enhancements to provide context around structural characteristics of the data while preserving privacy. 
+# The original function this was derived from is still available in the codebase for reference.
 def get_structure_pattern(val):
     """
     Extract structural characteristics without exposing content.
@@ -76,6 +80,10 @@ def get_structure_pattern(val):
     return '-'.join(structure[:20])  # Limit length
 
 
+
+# For the sake of transparency, this function was created by ChatGPT based on the original df_checker function, but with significant enhancements to provide
+# more structural insights while preserving privacy. The original function is still available in the codebase for reference, 
+# but this new version (df_checker_v2) is designed to be more robust and informative without exposing any actual data content.
 def df_checker_v2(data: pd.DataFrame) -> dict:
     """
     Enhanced privacy-preserving structural data analysis.
